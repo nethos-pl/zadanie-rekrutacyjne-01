@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS KONTRAHENT22 ;
+--
+-- CREATE TABLE KONTRAHENT (
+--   id INT AUTO_INCREMENT  PRIMARY KEY,
+--   nazwa VARCHAR(250) NOT NULL
+-- );
+
+-- INSERT INTO KONTRAHENT (nazwa) VALUES
+--   ('Nethos Sp. z o.o.'),
+--   ('LOTOS SA'),
+--   ('ENERGA SA');
