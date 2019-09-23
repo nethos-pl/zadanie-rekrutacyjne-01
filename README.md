@@ -9,7 +9,7 @@
 
 1. Java 8
 1. Vaadin 14 (https://vaadin.com/)
-1. Spring Boot 2.1
+1. Spring Boot 2.1 (https://spring.io/projects/spring-boot)
 1. Baza H2 Embedded w trybie in-memory
 
 Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pomóc w rozwiązaniu zadań.
