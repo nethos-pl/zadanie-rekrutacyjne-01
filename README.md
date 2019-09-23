@@ -8,7 +8,7 @@
 ### Wykorzystane w projekcie technologie
 
 1. Java 8
-1. Vaadin 14
+1. Vaadin 14 (https://vaadin.com/)
 1. Spring Boot 2.1
 1. Baza H2 Embedded w trybie in-memory
 
