@@ -42,7 +42,7 @@ Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pom
 Aplikacja powinna być odporna na wszelkie wyjątki związane z bazą danych i API.
 
 W bazie danych projektu są dwie tabele kontrahenci oraz ich konta bankowe. Tabele są tworzone za każdym razem od nowa w momencie 
-uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'.
+uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'. Plik w razie konieczności można modyfikować.
 
 ### Zadanie 1
 Stwórz obiekty encyjne, reprezentujące podany schemat bazy danych.
