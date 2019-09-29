@@ -72,7 +72,8 @@ Więcej: https://www.gov.pl/web/kas/api-wykazu-podatnikow-vat
 
 Przycisk ma służyć też jako wyświetlenie samego stanu. Po najechaniu myszką na przycisk powinna pojawić w chmurce informacja o dacie weryfikacji. Dostępne stany to: nieokreślony, błędne konto, zweryfikowany. Kliknięcie przycisku pobiera info z API i ustawia odpowiedni stan w bazie danych i w interfejsie.
 
-W bazie danych należy ustawić odpowiednio pole stan_weryfikacji, data_weryfikacji
+W bazie danych należy ustawić odpowiednio pole stan_weryfikacji, data_weryfikacji.
+Czynność weryfikacji konta może odbywać się wielokrotnie.
 
 ### Podsumowanie 
 Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy: kod powinien być jakości produkcyjnej.
