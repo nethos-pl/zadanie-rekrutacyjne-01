@@ -76,5 +76,6 @@ W bazie danych należy ustawić odpowiednio pole stan_weryfikacji, data_weryfika
 Czynność weryfikacji konta może odbywać się wielokrotnie.
 
 ### Podsumowanie 
-Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy: kod powinien być jakości produkcyjnej.
-Kod powinien być dostarczony na platformie Github, jako link do repozytorium. Wcześniej należy zrobić fork naszego bazowego projektu.
+Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy. Kod powinien być jakości produkcyjnej.
+Kod powinien być dostarczony na platformie Github, jako link do repozytorium.
+Wcześniej należy zrobić fork naszego bazowego projektu.
