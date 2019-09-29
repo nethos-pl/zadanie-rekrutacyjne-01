@@ -56,11 +56,11 @@ Tabela kontrahentów powinna zwierać kolumny:
 
 Na kliknięcie na wiersz kontrahenta ma się otworzyć lista jego kont bankowych.
 Tabela kont bankowych powinna zwierać kolumny:
-- numer konta (sformatowany do postaci xx xxxx xxxx xxxx xxxx xxxx xxxx), 
+- numer (numer konta sformatowany do postaci xx xxxx xxxx xxxx xxxx xxxx xxxx), 
 - aktywne, 
 - domyślne, 
 - wirtualne
-- pole z zadania 3
+- pole z zadania 3 (stan_weryfiacji)
 
 Prosimy zwrócić uwagę estetykę wyświetlania tj. szerokości, wyrównania, zwijanie się tekstu itp. 
 Sposób wyświetlenie podglądu kont bankowych może być dowolny.
@@ -70,7 +70,7 @@ Na liście kont bankowych, w każdym wierszu, trzeba udostępnić przycisk w oso
 
 Więcej: https://www.gov.pl/web/kas/api-wykazu-podatnikow-vat
 
-Przycisk ma służyć też jako wyświetlenie samego stanu. Dostępne stany to: nieokreślony, błędne konto, zweryfikowany. Kliknięcie przycisku pobiera info z API i ustawia odpowiedni stan w bazie danych i w interfejsie.
+Przycisk ma służyć też jako wyświetlenie samego stanu. Po najechaniu myszką na przycisk powinna pojawić w chmurce informacja o dacie weryfikacji. Dostępne stany to: nieokreślony, błędne konto, zweryfikowany. Kliknięcie przycisku pobiera info z API i ustawia odpowiedni stan w bazie danych i w interfejsie.
 
 W bazie danych należy ustawić odpowiednio pole stan_weryfiacji, data_weryfikacji
 
