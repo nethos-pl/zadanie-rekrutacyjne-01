@@ -1,11 +1,42 @@
-DROP TABLE IF EXISTS KONTRAHENT22 ;
---
--- CREATE TABLE KONTRAHENT (
---   id INT AUTO_INCREMENT  PRIMARY KEY,
---   nazwa VARCHAR(250) NOT NULL
--- );
+DROP TABLE IF EXISTS KONTRAHENT ;
+DROP TABLE IF EXISTS KONTO_BANKOWE ;
 
--- INSERT INTO KONTRAHENT (nazwa) VALUES
---   ('Nethos Sp. z o.o.'),
---   ('LOTOS SA'),
---   ('ENERGA SA');
+ CREATE TABLE KONTRAHENT (
+   id INT AUTO_INCREMENT  PRIMARY KEY,
+   nazwa VARCHAR(100) NOT NULL,
+   nip VARCHAR(11) NOT NULL
+);
+
+CREATE TABLE KONTO_BANKOWE (
+   id INT AUTO_INCREMENT  PRIMARY KEY,
+   id_kontrahent INT,
+   numer VARCHAR(26) NOT NULL,
+   aktywne INT NOT NULL,
+   domyslne INT NOT NULL,
+   wirtualne INT NOT NULL,
+   stan_weryfikacji INT,
+   data_weryfikacji TIMESTAMP
+);
+
+
+ INSERT INTO KONTRAHENT (nazwa,nip) VALUES
+   ('Zarząd Dróg i Zieleni w Gdańsku','5840900085'),
+   ('LYRECO POLSKA S.A.','5212711056'),
+   ('ZPM TS Sp. z o.o.','9571077874'),
+   ('Merida Sp. z o.o.','8990024020');
+
+   INSERT INTO KONTO_BANKOWE (id_kontrahent,numer,aktywne,domyslne,wirtualne,stan_weryfikacji,data_weryfikacji) VALUES
+      (1,'30124012681111001062586774',1,1,0,1,'2019-01-01 01:02:03'),
+      (2,'18124011121111001000261358',1,1,0,null,null),
+      (3,'30124012681111001062586774',1,1,0,null,null),
+      (3,'96109010980000000141228877',1,0,0,null,null),
+      (3,'73124012681111001063102816',1,0,0,null,null),
+      (3,'92109010980000000140296488',1,0,0,null,null),
+      (3,'24124012681111001067852236',1,0,0,null,null),
+      (4,'13103012890000000088620003',1,1,0,null,null),
+      (4,'92820010216218150742731348',0,1,0,null,null),
+      (4,'82150021659665252748870318',0,1,0,null,null),
+      (4,'75124056868389315074760969',0,1,1,null,null),
+      (4,'37130010493110949241487155',0,1,0,null,null),
+      (4,'48909610149341085785996968',0,0,1,null,null);
+
