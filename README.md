@@ -27,3 +27,53 @@ Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pom
     - JDBC URL: `jdbc:h2:mem:testdb`
     - User Name: `sa`
     - Pole Password zostawić puste
+    
+    
+## Opis zadania
+Proszę zaimplementować program, który pozwoli wyświetlić listę kontrahentów i po wyborze któregoś z nich, podejrzeć jego listę kont bankowych. Każde konto może podlegać weryfikacji na tzw. Białej Liście.
+
+Opis szczegółowy
+
+Wykorzystane w projekcie technologie:
+1. .....
+
+Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pomóc w rozwiązaniu zadań.
+
+Aplikacja powinna być odporna na wszelkie wyjątki związane z bazą danych i API.
+
+W bazie danych projektu są dwie tabele kontrahenci oraz ich konta bankowe. Tabele są tworzone za każdym razem od nowa w momencie 
+uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'.
+
+### Zadanie 1
+Stwórz obiekty encyjne, reprezentujące podany schemat bazy danych.
+
+### Zadanie 2
+Po starcie aplikacji powinna wyświetlić lista kontrahentów pobrana z bazy danych.
+
+Tabela kontrahentów powinna zwierać kolumny:
+- nazwa
+- nip
+
+Na kliknięcie na wiersz kontrahenta ma się otworzyć lista jego kont bankowych.
+Tabela kont bankowych powinna zwierać kolumny:
+- numer konta (sformatowany do postaci xx xxxx xxxx xxxx xxxx xxxx xxxx), 
+- aktywne, 
+- domyślne, 
+- wirtualne
+- pole z zadania 3
+
+Prosimy zwrócić uwagę estetykę wyświetlania tj. szerokości, wyrównania, zwijanie się tekstu itp. 
+Sposób wyświetlenie podglądu kont bankowych może być dowolny.
+
+### Zadanie 3
+Na liście kont bankowych, w każdym wierszu, trzeba udostępnić przycisk w osobnej kolumnie, który służy do weryfikacji istnienia konta bankowego na ogólno-dostępnym API Białej Listy. 
+
+Więcej: https://www.gov.pl/web/kas/api-wykazu-podatnikow-vat
+
+Przycisk ma służyć też jako wyświetlenie samego stanu. Dostępne stany to: nieokreślony, błędne konto, zweryfikowany. Kliknięcie przycisku pobiera info z API i ustawia odpowiedni stan w bazie danych i w interfejsie.
+
+W bazie danych należy ustawić odpowiednio pole stan_weryfiacji, data_weryfikacji
+
+### Podsumowanie 
+Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy: kod powinien być jakości produkcyjnej.
+Kod powinien być dostarczony na platformie Github, jako link do repozytorium. Wcześniej należy zrobić fork naszego bazowego projektu.
