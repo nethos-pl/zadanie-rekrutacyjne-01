@@ -29,6 +29,7 @@ public class MainView extends VerticalLayout {
 
         Kontrahent kontrahent = new Kontrahent();
         kontrahent.setNazwa(nazwa);
+        kontrahent.setNip("12345");
         kontrahentRepository.save(kontrahent);
 
         Notification.show(String.format("Dodano %s", nazwa));
