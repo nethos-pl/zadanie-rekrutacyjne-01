@@ -41,9 +41,9 @@ uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowyw
 Stwórz obiekty encyjne, reprezentujące podany schemat bazy danych.
 
 ### Zadanie 2
-Po starcie aplikacji powinna wyświetlić lista kontrahentów pobrana z bazy danych.
+Po starcie aplikacji powinna wyświetlić się lista kontrahentów pobrana z bazy danych.
 
-Tabela kontrahentów powinna zwierać kolumny:
+Tabela kontrahentów powinna zawierać kolumny:
 - nazwa
 - nip
 
