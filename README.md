@@ -17,7 +17,7 @@ Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pom
 ### Uruchomienie aplikacji
 
 1. Uruchom aplikację poleceniem `mvn spring-boot:run` lub z poziomu Twojego IDE uruchamiając klasę Application. 
-1. Przechodziny na adres http://127.0.0.1:8080 w przeglądarce
+1. Przechodzimy na adres http://127.0.0.1:8080 w przeglądarce
 
 ### Dostęp do bazy danych
 
