@@ -32,10 +32,10 @@ Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pom
 ## Opis zadania
 Proszę zaimplementować program, który pozwoli wyświetlić listę kontrahentów i po wyborze któregoś z nich, podejrzeć jego listę kont bankowych. Każde konto może podlegać weryfikacji na tzw. Białej Liście.
 
-Opis szczegółowy
+### Opis szczegółowy
 
 W bazie danych projektu są dwie tabele kontrahenci oraz ich konta bankowe. Tabele są tworzone za każdym razem od nowa w momencie 
-uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'. Plik w razie konieczności można modyfikować.
+uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'. Plik w razie konieczności można modyfikować. Wyświetlanie danych ma być zrealizowane przy pomocy frameworka Vaadin.
 
 ### Zadanie 1
 Stwórz obiekty encyjne, reprezentujące podany schemat bazy danych.
