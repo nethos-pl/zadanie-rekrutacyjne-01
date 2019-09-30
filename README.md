@@ -34,13 +34,6 @@ Proszę zaimplementować program, który pozwoli wyświetlić listę kontrahent�
 
 Opis szczegółowy
 
-Wykorzystane w projekcie technologie:
-1. .....
-
-Do projektu możesz dodawać dowolne inne technologie, które miałyby Tobie pomóc w rozwiązaniu zadań.
-
-Aplikacja powinna być odporna na wszelkie wyjątki związane z bazą danych i API.
-
 W bazie danych projektu są dwie tabele kontrahenci oraz ich konta bankowe. Tabele są tworzone za każdym razem od nowa w momencie 
 uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'. Plik w razie konieczności można modyfikować.
 
@@ -76,6 +69,6 @@ W bazie danych należy ustawić odpowiednio pole stan_weryfikacji, data_weryfika
 Czynność weryfikacji konta może odbywać się wielokrotnie.
 
 ### Podsumowanie 
-Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy. Kod powinien być jakości produkcyjnej.
+Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy. Kod powinien być jakości produkcyjnej. Aplikacja powinna być odporna na wszelkie wyjątki związane z bazą danych i API.
 Kod powinien być dostarczony na platformie Github, jako link do repozytorium.
 Wcześniej należy zrobić fork naszego bazowego projektu.
