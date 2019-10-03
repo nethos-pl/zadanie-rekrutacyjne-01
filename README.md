@@ -56,7 +56,7 @@ Tabela kont bankowych powinna zwierać kolumny:
 - pole z zadania 3 (stan_weryfiacji)
 
 Prosimy zwrócić uwagę estetykę wyświetlania tj. szerokości, wyrównania, zwijanie się tekstu itp. 
-Sposób wyświetlenie podglądu kont bankowych może być dowolny.
+Sposób wyświetlenia listy kont bankowych może być dowolny.
 
 ### Zadanie 3
 Na liście kont bankowych, w każdym wierszu, trzeba udostępnić przycisk w osobnej kolumnie, który służy do weryfikacji istnienia konta bankowego na ogólno-dostępnym API Białej Listy. 
