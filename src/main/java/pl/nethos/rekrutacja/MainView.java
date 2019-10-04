@@ -15,6 +15,8 @@ import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
 public class MainView extends VerticalLayout {
 
     public MainView(@Autowired KontrahentRepository kontrahentRepository) {
+        setSizeFull();
+
         wyswietl(kontrahentRepository);
     }
 
