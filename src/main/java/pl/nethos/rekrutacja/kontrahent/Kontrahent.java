@@ -29,4 +29,13 @@ public class Kontrahent {
     public void setNip(String nip) {
         this.nip = nip;
     }
+
+    @Override
+    public String toString() {
+        return "Kontrahent{" +
+                "id=" + id +
+                ", nazwa='" + nazwa + '\'' +
+                ", nip='" + nip + '\'' +
+                '}';
+    }
 }

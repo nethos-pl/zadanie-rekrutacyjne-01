@@ -1,38 +1,26 @@
 package pl.nethos.rekrutacja;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.notification.Notification;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
-import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import pl.nethos.rekrutacja.kontrahent.Kontrahent;
-
-import java.util.concurrent.ThreadLocalRandom;
+import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
 
 @Route
 @PWA(name = "Nethos - Zadanie rekrutacyjne na stanowisko programisty", shortName = "Nethos - Rekrutacja")
 public class MainView extends VerticalLayout {
 
-    @Autowired
-    private KontrahentRepository kontrahentRepository;
-
-    public MainView() {
-        Button button = new Button("Dodaj kontrahenta", e -> dodajKontrahenta());
-        add(button);
+    public MainView(@Autowired KontrahentRepository kontrahentRepository) {
+        wyswietl(kontrahentRepository);
     }
 
-    private void dodajKontrahenta() {
-        final String nazwa = "Kontrahent #" + ThreadLocalRandom.current().nextInt(100);
-
-        Kontrahent kontrahent = new Kontrahent();
-        kontrahent.setNazwa(nazwa);
-        kontrahent.setNip("12345");
-        kontrahentRepository.save(kontrahent);
-
-        Notification.show(String.format("Dodano %s", nazwa));
+    private void wyswietl(KontrahentRepository kontrahentRepository) {
+        for (Kontrahent kontrahent : kontrahentRepository.all()) {
+            add(new Label(kontrahent.toString()));
+        }
     }
-
 }
