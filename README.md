@@ -70,5 +70,4 @@ Czynność weryfikacji konta może odbywać się wielokrotnie.
 
 ### Podsumowanie 
 Proszę założyć, że zadanie ma być wykonane w realnych warunkach pracy. Kod powinien być jakości produkcyjnej. Aplikacja powinna być odporna na wszelkie wyjątki związane z bazą danych i API.
-Kod powinien być dostarczony na platformie Github, jako link do repozytorium.
-Wcześniej należy zrobić fork naszego bazowego projektu.
+Proszę zrobić clone tego repozytorium, stworzyć własny projekt, bazującym na tym klonie i wysłać do nas link do Twojego repozytorium.
