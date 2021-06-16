@@ -8,7 +8,7 @@
 
     <properties>
         <java.version>8</java.version>
-        <vaadin.version>14.5.1</vaadin.version>
+        <vaadin.version>14.6.3</vaadin.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -135,7 +135,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.199</version>
+            <version>1.4.200</version>
         </dependency>
         <!-- Include JUnit 4 support for TestBench and others -->
         <dependency>

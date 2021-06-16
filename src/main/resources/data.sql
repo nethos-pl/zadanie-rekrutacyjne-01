@@ -24,7 +24,6 @@ CREATE TABLE KONTO_BANKOWE (
    data_weryfikacji TIMESTAMP
 );
 
-
 INSERT INTO KONTRAHENT (nazwa,nip) VALUES
     ('Zarząd Dróg i Zieleni w Gdańsku','5840900085'),
     ('LYRECO POLSKA S.A.','5212711056'),
