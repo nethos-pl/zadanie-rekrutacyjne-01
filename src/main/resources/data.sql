@@ -31,7 +31,7 @@ INSERT INTO KONTRAHENT (nazwa,nip) VALUES
     ('Merida Sp. z o.o.','8990024020');
 
 INSERT INTO KONTO_BANKOWE (id_kontrahent,numer,aktywne,domyslne,wirtualne,stan_weryfikacji,data_weryfikacji) VALUES
-    (1,'30124012681111001062586774',1,1,0,1,'2019-01-01 01:02:03'),
+    (1,'30124012681111001062586774',1,1,0,1,'2022-01-01 01:02:03'),
     (2,'18124011121111001000261358',1,1,0,null,null),
     (3,'30124012681111001062586774',1,1,0,null,null),
     (3,'96109010980000000141228877',1,0,0,null,null),

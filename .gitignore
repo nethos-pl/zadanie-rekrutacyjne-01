@@ -370,3 +370,5 @@ $RECYCLE.BIN/
 /.idea/misc.xml
 /.idea/sbt.xml
 /.idea/vcs.xml
+/frontend/index.html
+/frontend/generated/

@@ -1,41 +1,45 @@
 package pl.nethos.rekrutacja.kontrahent;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 
 @Entity
 public class Kontrahent {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "kontrahent_gen")
-    @SequenceGenerator(name="kontrahent_gen", sequenceName = "kontrahent_seq", allocationSize = 1)
-    private long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "kontrahent_gen")
+	@SequenceGenerator(name = "kontrahent_gen", sequenceName = "kontrahent_seq", allocationSize = 1)
+	private long id;
 
-    private String nazwa;
+	private String nazwa;
 
-    private String nip;
+	private String nip;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public String getNazwa() {
-        return nazwa;
-    }
+	public String getNazwa() {
+		return nazwa;
+	}
 
-    public void setNazwa(String nazwa) {
-        this.nazwa = nazwa;
-    }
+	public void setNazwa(String nazwa) {
+		this.nazwa = nazwa;
+	}
 
-    public void setNip(String nip) {
-        this.nip = nip;
-    }
+	public void setNip(String nip) {
+		this.nip = nip;
+	}
 
-    @Override
-    public String toString() {
-        return "Kontrahent{" +
-                "id=" + id +
-                ", nazwa='" + nazwa + '\'' +
-                ", nip='" + nip + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Kontrahent{" +
+				"id=" + id +
+				", nazwa='" + nazwa + '\'' +
+				", nip='" + nip + '\'' +
+				'}';
+	}
 }
