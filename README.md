@@ -1,9 +1,9 @@
 ### Wymagania przed rozpoczęciem pracy nad projektem
 
-1. Zainstalowane JDK w wersji 8 lub wyższej.
+1. Zainstalowane JDK w wersji 17 lub wyższej.
 1. Apache Maven w wersji 3.5 lub wyższej. Instalacja sprowadza się do rozpakowania zipa. Istotnym plikiem nas interesującym jest mvn.cmd - przyda się później. (https://maven.apache.org/download.cgi#)
 1. Ustawiona zmienna środowiskowa JAVA_HOME na wartość katalogu w którym zainstalowana została java z punktu 1 (https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html)
-1. Instalacja Nodejs w wersji 10+ (https://nodejs.org/en/)
+1. Instalacja Nodejs w wersji 16+ (https://nodejs.org/en/)
 
 ### Wykorzystane w projekcie technologie
 
@@ -38,7 +38,7 @@ W bazie danych projektu są dwie tabele kontrahenci oraz ich konta bankowe. Tabe
 uruchomienia aplikacji. To samo dotyczy danych. Schemat oraz dane są przechowywane w pliku 'data.sql'. Plik w razie konieczności można modyfikować. Wyświetlanie danych ma być zrealizowane przy pomocy frameworka Vaadin.
 
 ### Zadanie 1
-Stwórz obiekty encyjne, reprezentujące podany schemat bazy danych.
+Stwórz obiekty encyjne reprezentujące podany schemat bazy danych.
 
 ### Zadanie 2
 Po starcie aplikacji powinna wyświetlić się lista kontrahentów pobrana z bazy danych.
@@ -55,7 +55,7 @@ Tabela kont bankowych powinna zwierać kolumny:
 - wirtualne
 - pole z zadania 3 (stan_weryfiacji)
 
-Prosimy zwrócić uwagę estetykę wyświetlania tj. szerokości, wyrównania, zwijanie się tekstu itp. 
+Prosimy zwrócić uwagę estetykę wyświetlania, tj. szerokości, wyrównania, zwijanie się tekstu itp. 
 Sposób wyświetlenia listy kont bankowych może być dowolny.
 
 ### Zadanie 3
