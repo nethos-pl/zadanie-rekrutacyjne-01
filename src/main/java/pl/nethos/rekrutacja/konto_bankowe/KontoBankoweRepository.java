@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.nethos.rekrutacja.kontrahent.Kontrahent;
 
 import java.util.List;
 
@@ -16,5 +17,9 @@ public class KontoBankoweRepository {
 
     public List<KontoBankowe> all() {
         return em.createQuery("SELECT b FROM KontoBankowe b", KontoBankowe.class).getResultList();
+    }
+
+    public List<KontoBankowe> specificKontrahent(long idKontrahent) {
+        return em.createQuery("SELECT b FROM KontoBankowe b WHERE idKontrahent="+idKontrahent, KontoBankowe.class).getResultList();
     }
 }
