@@ -14,10 +14,6 @@ import pl.nethos.rekrutacja.konto_bankowe.KontoBankoweRepository;
 import pl.nethos.rekrutacja.kontrahent.Kontrahent;
 import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
 
-// TODO: add methods descriptions
-// TODO: tests
-// 
-
 @PageTitle("Ekran główny")
 @Route("")
 public class KontrahentListView extends Div {
