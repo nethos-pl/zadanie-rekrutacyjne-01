@@ -5,7 +5,9 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,16 +77,24 @@ public class KontrahentListView extends Div {
         kontoBankoweGrid.addColumn(KontoBankowe::getAktywne).setHeader("Aktywne");
         kontoBankoweGrid.addColumn(KontoBankowe::getDomyslne).setHeader("Domyślne");
         kontoBankoweGrid.addColumn(KontoBankowe::getWirtualne).setHeader("Wirtualne");
+
         kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
             Integer stanWeryfkacji = kontoBankowe.getStanWeryfkacji();
-            Component component;
+            String theme;
+            Span span = new Span();
+
             if (stanWeryfkacji != null) {
-                component = new Text(stanWeryfkacji.toString());
+                theme = String.format("badge %s", "success");
             } else {
-                component = new Text("Nie weryfikowano");
+                theme = String.format("badge %s", "error");
             }
-            return component;
+
+            span.getElement().setAttribute("theme", theme);
+            span.setText("Nie weryfikowano");
+
+            return span;
         })).setHeader("Stan Weryfikacji");
+
 
         // FILL THE GRID WITH DATA
         kontoBankoweGrid.setItems(kontoBankoweRepository.specificKontrahent(kontrahent.getId()));
@@ -106,4 +116,17 @@ public class KontrahentListView extends Div {
 
         return formattedNumer;
     }
+
+//    private static final SerializableBiConsumer<Span, KontoBankowe> statusComponentUpdater = (
+//            span, kontoBankowe) -> {
+//        boolean isAvailable = "Available".equals(kontoBankowe.getStatus());
+//        String theme = String.format("badge %s",
+//                isAvailable ? "success" : "error");
+//        span.getElement().setAttribute("theme", theme);
+//        span.setText(kontoBankowe.getStatus());
+//    };
+//
+//    private static ComponentRenderer<Span, Kontrahent> createStatusComponentRenderer() {
+//        return new ComponentRenderer<>(Span::new, statusComponentUpdater);
+//    }
 }
