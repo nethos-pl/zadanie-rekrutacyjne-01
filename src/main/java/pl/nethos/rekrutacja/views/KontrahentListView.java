@@ -1,7 +1,9 @@
 package pl.nethos.rekrutacja.views;
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -16,11 +18,19 @@ import pl.nethos.rekrutacja.konto_bankowe.KontoBankoweRepository;
 import pl.nethos.rekrutacja.kontrahent.Kontrahent;
 import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
 @PageTitle("Ekran główny")
 @Route("")
 public class KontrahentListView extends Div {
 
     private KontoBankoweRepository kontoBankoweRepository;
+
     public KontrahentListView(@Autowired KontrahentRepository kontrahentRepository,
                               @Autowired KontoBankoweRepository kontoBankoweRepository)  {
 
@@ -81,7 +91,18 @@ public class KontrahentListView extends Div {
         kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
             Integer stanWeryfkacji = kontoBankowe.getStanWeryfkacji();
             String theme;
-            Span span = new Span();
+            Button button = new Button("",
+                    buttonClickEvent -> {
+                        // TODO: handle exceptions properly
+                        try {
+                            isVerified(kontrahent.getNip(), kontoBankowe.getNumer());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
 
             if (stanWeryfkacji != null) {
                 theme = String.format("badge %s", "success");
@@ -89,10 +110,10 @@ public class KontrahentListView extends Div {
                 theme = String.format("badge %s", "error");
             }
 
-            span.getElement().setAttribute("theme", theme);
-            span.setText("Nie weryfikowano");
+            button.getElement().setAttribute("theme", theme);
+            button.setText("Nie weryfikowano");
 
-            return span;
+            return button;
         })).setHeader("Stan Weryfikacji");
 
 
@@ -115,6 +136,24 @@ public class KontrahentListView extends Div {
         }
 
         return formattedNumer;
+    }
+
+    // TODO: test exceptions?
+    private void isVerified(String nip, String numer) throws IOException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest testGetRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://wl-test.mf.gov.pl/api/check/nip/" + nip + "/bank-account/" + numer))
+                .build();
+
+//        HttpRequest productionGetRequest = HttpRequest.newBuilder()
+//                .uri(URI.create("https://wl-api.mf.gov.pl/api/check/nip/" + nip + "/bank-account/" + numer))
+//                .build();
+
+        HttpResponse<String> response = client.send(testGetRequest,
+                HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.body());
     }
 
 //    private static final SerializableBiConsumer<Span, KontoBankowe> statusComponentUpdater = (
