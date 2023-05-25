@@ -31,11 +31,13 @@ public class KontoBankowe {
     private Integer wirtualne;
 
     @Getter
+    @Setter
     @Column(name = "STAN_WERYFIKACJI")
     private Integer stanWeryfkacji;
 
     @Getter
-    private Timestamp dataWeryfikacji;
+    @Setter
+    private String dataWeryfikacji;
 
     @Override
     public String toString() {
