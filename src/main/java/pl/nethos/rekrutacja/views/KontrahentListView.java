@@ -67,8 +67,8 @@ public class KontrahentListView extends Div {
         kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
             String numer = kontoBankowe.getNumer();
             String formattedNumer = formatNumer(numer);
-
             Component component = new Text(formattedNumer);
+
             return component;
         })).setHeader("Numer konta").setAutoWidth(true);
 
