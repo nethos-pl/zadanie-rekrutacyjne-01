@@ -110,7 +110,6 @@ public class KontrahentListView extends Div {
         kontoBankoweGrid.addColumn(KontoBankowe::getDomyslne).setHeader("Domyślne");
         kontoBankoweGrid.addColumn(KontoBankowe::getWirtualne).setHeader("Wirtualne");
 
-        // TODO set timeout
         kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
             AtomicInteger verificationStatus = STH_WENT_WRONG;
             AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
@@ -171,7 +170,6 @@ public class KontrahentListView extends Div {
         return formattedNumer.toString();
     }
 
-    // TODO: test exceptions?
     private int verifyAccount(Kontrahent kontrahent, KontoBankowe kontoBankowe, KontoBankoweRepository kontoBankoweRepository)
             throws IOException, InterruptedException, ParseException {
 
