@@ -10,6 +10,9 @@ import pl.nethos.rekrutacja.bank_account.BankAccountRepository;
 import pl.nethos.rekrutacja.contractor.Contractor;
 import pl.nethos.rekrutacja.contractor.ContractorRepository;
 
+/**
+ * Simple view class that shows the base functionality of Vaadin.
+ */
 @PageTitle("Zadanie")
 @Route("/zadanie")
 public class ExerciseView extends VerticalLayout {

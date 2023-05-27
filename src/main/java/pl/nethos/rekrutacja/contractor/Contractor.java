@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Class that represent contractor in delivered database.
+ */
 @Entity
 @Table(name = "KONTRAHENT")
 public class Contractor {
@@ -23,6 +26,9 @@ public class Contractor {
 	@Setter
 	private String nip;
 
+	/**
+	 * Prints Contractor instance with its every member.
+	 */
 	@Override
 	public String toString() {
 		return "Contractor{" +

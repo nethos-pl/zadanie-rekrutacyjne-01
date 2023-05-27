@@ -1,3 +1,4 @@
+/* Relate to header row at main contractor grid. */
 .contractor-grid-headers {
     font-size: 1.25em;
     font-weight: bold;
@@ -9,10 +10,12 @@
     padding-bottom: 2px;
 }
 
+/* Relate to main contractor grid that also hosts the bank account grid. */
 .contractor-bank-account-grid {
     font-weight: 600;
 }
 
+/* Relate to bank account grid. Specify other style than main grid. */
 .bank-account-grid {
     font-weight: normal;
     width: 98%;
