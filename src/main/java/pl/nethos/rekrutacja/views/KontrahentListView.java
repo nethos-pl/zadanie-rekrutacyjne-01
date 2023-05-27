@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class KontrahentListView extends Div {
     private static final AtomicInteger NOT_ASSIGNED = new AtomicInteger(0);
     private static final AtomicInteger ASSIGNED = new AtomicInteger(1);
-    private static final AtomicInteger STH_WENT_WRONG = new AtomicInteger(2);
 
     private final KontoBankoweRepository kontoBankoweRepository;
 
@@ -64,11 +63,9 @@ public class KontrahentListView extends Div {
         nazwaHeaderLabel.addClassName("kontrahent-grid-headers");
         kontrahentGrid.addColumn(Kontrahent::getNazwa).setHeader(nazwaHeaderLabel);
 
-
         Label nipHeaderLabel = new Label("NIP");
         nipHeaderLabel.addClassName("kontrahent-grid-headers");
         kontrahentGrid.addColumn(Kontrahent::getNip).setHeader(nipHeaderLabel);
-
 
         // Add details to each row by renderer.
         kontrahentGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createItemDetailsGrid));
@@ -84,8 +81,9 @@ public class KontrahentListView extends Div {
 
     private Component createItemDetailsGrid(Kontrahent kontrahent) {
         Grid<KontoBankowe> kontoBankoweGrid = new Grid<>(KontoBankowe.class, false);
-        kontoBankoweGrid.setClassName("konto-bankowe-grid");
 
+        // For CSS purpose.
+        kontoBankoweGrid.setClassName("konto-bankowe-grid");
 
         // STYLE THE GRID
         // Grid striped.
@@ -97,60 +95,17 @@ public class KontrahentListView extends Div {
         // Highlight the row.
         kontoBankoweGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
-        kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
-            String numer = kontoBankowe.getNumer();
-            String formattedNumer = formatNumer(numer);
-
-            return (Component) new Text(formattedNumer);
-        })).setHeader("Numer konta").setAutoWidth(true).setFlexGrow(0);
+        kontoBankoweGrid
+                .addColumn(new ComponentRenderer<>(this::createFormattedNumer))
+                .setHeader("Numer konta").setAutoWidth(true).setFlexGrow(0);
 
         kontoBankoweGrid.addColumn(KontoBankowe::getAktywne).setHeader("Aktywne");
         kontoBankoweGrid.addColumn(KontoBankowe::getDomyslne).setHeader("Domyślne");
         kontoBankoweGrid.addColumn(KontoBankowe::getWirtualne).setHeader("Wirtualne");
 
-        kontoBankoweGrid.addColumn(new ComponentRenderer<>(kontoBankowe -> {
-            AtomicInteger verificationStatus = STH_WENT_WRONG;
-            AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
-            verificationButton.set(new Button("",
-                    buttonClickEvent -> {
-                        try {
-                            verificationStatus.set(verifyAccount(kontrahent, kontoBankowe, kontoBankoweRepository));
-                            updateVerificationButton(verificationButton, verificationStatus, kontoBankowe);
-                        } catch (IOException e) {
-                            // Connection
-                            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
-                            throw new RuntimeException(e);
-                        } catch (InterruptedException e) {
-                            // Multi-threading
-                            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
-                                    "Spróbuj jeszcze raz.");
-                            throw new RuntimeException(e);
-                        } catch (ParseException e) {
-                            // Parsing went wrong
-                            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
-                                    "Skontaktuj się z autorem programu.");
-                            throw new RuntimeException(e);
-                        }
-                    }
-            ));
-
-
-            String theme = "badge error";
-            if (kontoBankowe.getStanWeryfkacji() == null) {
-                verificationButton.get().setText("Nieokreślony");
-                theme = String.format("badge %s", "information");
-            } else if (kontoBankowe.getStanWeryfkacji() == ASSIGNED.get()){
-                theme = String.format("badge %s", "success");
-                verificationButton.get().setText("Zweryfikowany");
-            } else if (kontoBankowe.getStanWeryfkacji() == NOT_ASSIGNED.get()) {
-                verificationButton.get().setText("Błędne konto");
-            }
-
-            verificationButton.get().getElement().setAttribute("theme", theme);
-            verificationButton.get().setTooltipText(kontoBankowe.getDataWeryfikacji());
-
-            return verificationButton.get();
-        })).setHeader("Stan Weryfikacji");
+        kontoBankoweGrid
+                .addColumn(new ComponentRenderer<>(kontoBankowe -> createVerificationButton(kontrahent, kontoBankowe)))
+                .setHeader("Stan Weryfikacji");
 
         kontoBankoweGrid.setAllRowsVisible(true);
 
@@ -158,6 +113,138 @@ public class KontrahentListView extends Div {
         kontoBankoweGrid.setItems(kontoBankoweRepository.specificKontrahent(kontrahent.getId()));
 
         return kontoBankoweGrid;
+    }
+
+    private Component createVerificationButton(Kontrahent kontrahent, KontoBankowe kontoBankowe) {
+        AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
+        verificationButton.set(new Button("",
+                buttonClickEvent -> {
+                    // Verification on demand.
+                    verifyAccount(kontrahent, kontoBankowe);
+                    updateVerificationButton(verificationButton, kontoBankowe);
+                }
+        ));
+
+        // Check verification at start.
+        updateVerificationButton(verificationButton, kontoBankowe);
+
+        return verificationButton.get();
+    }
+
+    private Component createFormattedNumer(KontoBankowe kontoBankowe) {
+        String numer = kontoBankowe.getNumer();
+        String formattedNumer = formatNumer(numer);
+
+        return (Component) new Text(formattedNumer);
+    }
+
+    private void verifyAccount(Kontrahent kontrahent, KontoBankowe kontoBankowe) {
+        JsonObject jsonResponse = jsonResponseFromWlGovApi(kontrahent, kontoBankowe);
+        if (jsonResponse.has("result")) {
+            String newTimestamp = jsonResponse
+                    .getAsJsonObject("result")
+                    .get("requestDateTime")
+                    .getAsString();
+
+            String newDateString = formatDate(newTimestamp);
+            if (!newDateString.equals(""))
+                kontoBankowe.setDataWeryfikacji(newDateString);
+            else
+                kontoBankowe.setDataWeryfikacji("Niepoprawny format daty.");
+
+            String accountAssigned = jsonResponse
+                    .getAsJsonObject("result")
+                    .get("accountAssigned")
+                    .getAsString();
+
+            if (accountAssigned.equals("TAK")) {
+                kontoBankowe.setStanWeryfkacji(ASSIGNED.get());
+                kontoBankoweRepository.merge(kontoBankowe);
+            } else if (accountAssigned.equals("NIE")){
+                kontoBankowe.setStanWeryfkacji(NOT_ASSIGNED.get());
+                kontoBankoweRepository.merge(kontoBankowe);
+            } else {
+                // Updating only date.
+                kontoBankoweRepository.merge(kontoBankowe);
+            }
+        } else if (jsonResponse.has("code")) {
+            String code = jsonResponse.get("code").getAsString();
+            String message = jsonResponse.get("message").getAsString();
+            dbErrorDialog(code + ": " + message);
+        } else {
+            dbErrorDialog("Sprawdzenie konta nie powiodło się odpowiedź z serwera jest pusta. " +
+                    "Skontaktuj się z autorem programu.");
+        }
+    }
+
+    private JsonObject jsonResponseFromWlGovApi(Kontrahent kontrahent, KontoBankowe kontoBankowe){
+        HttpClient client = HttpClient.newHttpClient();
+        // Request for test white list GOV API.
+//        HttpRequest getRequest = HttpRequest.newBuilder()
+//                .uri(URI.create("https://wl-test.mf.gov.pl/api/check/nip/" +
+//                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
+//                .build();
+
+        // Request for production white list GOV API.
+        HttpRequest getRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://wl-api.mf.gov.pl/api/check/nip/" +
+                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
+                .build();
+
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            // Connection
+            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            // Multi-threading
+            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
+                    "Spróbuj jeszcze raz.");
+            throw new RuntimeException(e);
+        }
+
+        System.out.println(response.body());
+
+        JsonObject jsonResponse = null;
+        if (!response.equals(null)) {
+            Gson gson = new Gson();
+            jsonResponse = gson.fromJson(response.body(), JsonObject.class);
+        }
+
+        return jsonResponse;
+    }
+
+    private String formatDate(String newTimestamp) {
+        String inputFormat = "dd-MM-yyyy HH:mm:ss";
+        String outputFormat = "yyyy-MM-dd HH:mm:ss";
+        SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
+        SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
+
+        Date date = null;
+        try {
+            date = inputFormatter.parse(newTimestamp);
+        } catch (ParseException e) {
+            // Parsing went wrong
+            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
+                    "Skontaktuj się z autorem programu.");
+            throw new RuntimeException(e);
+        }
+
+        String newDateString = outputFormatter.format(date);
+
+        if (!newDateString.equals(""))
+            return newDateString;
+        else
+            return "";
+    }
+
+    private void dbErrorDialog(String errorText){
+        Dialog dialog = new Dialog();
+        Label infoLabel = new Label(errorText + "\n");
+        dialog.add(infoLabel);
+        dialog.open();
     }
 
     private String formatNumer(String numer) {
@@ -175,95 +262,19 @@ public class KontrahentListView extends Div {
         return formattedNumer.toString();
     }
 
-    private int verifyAccount(Kontrahent kontrahent, KontoBankowe kontoBankowe, KontoBankoweRepository kontoBankoweRepository)
-            throws IOException, InterruptedException, ParseException {
-
-        HttpClient client = HttpClient.newHttpClient();
-        // Request for test API.
-//        HttpRequest getRequest = HttpRequest.newBuilder()
-//                .uri(URI.create("https://wl-test.mf.gov.pl/api/check/nip/" +
-//                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
-//                .build();
-
-        // Request for production API.
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://wl-api.mf.gov.pl/api/check/nip/" +
-                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
-                .build();
-
-        HttpResponse<String> response = client.send(getRequest,
-                HttpResponse.BodyHandlers.ofString());
-
-        System.out.println(response.body());
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
-
-        if (jsonObject.has("result")) {
-            String newTimestamp = jsonObject
-                    .getAsJsonObject("result")
-                    .get("requestDateTime")
-                    .getAsString();
-
-            String inputFormat = "dd-MM-yyyy HH:mm:ss";
-            String outputFormat = "yyyy-MM-dd HH:mm:ss";
-            SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
-            SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
-            Date date = inputFormatter.parse(newTimestamp);
-
-            kontoBankowe.setDataWeryfikacji(outputFormatter.format(date));
-
-            String accountAssigned = jsonObject
-                    .getAsJsonObject("result")
-                    .get("accountAssigned")
-                    .getAsString();
-
-            if (accountAssigned.equals("TAK")) {
-                kontoBankowe.setStanWeryfkacji(ASSIGNED.get());
-                kontoBankoweRepository.merge(kontoBankowe);
-                return ASSIGNED.get();
-            } else if (accountAssigned.equals("NIE")){
-                kontoBankowe.setStanWeryfkacji(NOT_ASSIGNED.get());
-                kontoBankoweRepository.merge(kontoBankowe);
-                return NOT_ASSIGNED.get();
-            } else {
-                // Updating only date.
-                kontoBankoweRepository.merge(kontoBankowe);
-                return STH_WENT_WRONG.get();
-            }
-        } else if (jsonObject.has("code")) {
-            String code = jsonObject.get("code").getAsString();
-            String message = jsonObject.get("message").getAsString();
-            dbErrorDialog(code + ": " + message);
-            return STH_WENT_WRONG.get();
-        }
-
-        dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na nieoczekiwane zachowanie. " +
-                "Skontaktuj się z autorem programu.");
-        return STH_WENT_WRONG.get();
-    }
-
-    private void updateVerificationButton(AtomicReference<Button> button,
-                                          AtomicInteger verificationStatus,
-                                          KontoBankowe kontoBankowe) {
+    private void updateVerificationButton(AtomicReference<Button> verificationButton, KontoBankowe kontoBankowe) {
         String theme = "badge error";
-        if (verificationStatus.get() == ASSIGNED.get()){
-            theme = String.format("badge %s", "success");
-            button.get().setText("Zweryfikowany");
-        } else if (verificationStatus.get() == NOT_ASSIGNED.get()) {
-            button.get().setText("Błędne konto");
-        } else if (verificationStatus.get() == STH_WENT_WRONG.get()) {
-            button.get().setText("Nieokreślony");
+        if (kontoBankowe.getStanWeryfkacji() == null) {
+            verificationButton.get().setText("Nieokreślony");
             theme = String.format("badge %s", "information");
+        } else if (kontoBankowe.getStanWeryfkacji() == ASSIGNED.get()){
+            theme = String.format("badge %s", "success");
+            verificationButton.get().setText("Zweryfikowany");
+        } else if (kontoBankowe.getStanWeryfkacji() == NOT_ASSIGNED.get()) {
+            verificationButton.get().setText("Błędne konto");
         }
 
-        button.get().getElement().setAttribute("theme", theme);
-        button.get().setTooltipText(kontoBankowe.getDataWeryfikacji());
-    }
-
-    private void dbErrorDialog(String errorText){
-        Dialog dialog = new Dialog();
-        Label infoLabel = new Label(errorText + "\n");
-        dialog.add(infoLabel);
-        dialog.open();
+        verificationButton.get().getElement().setAttribute("theme", theme);
+        verificationButton.get().setTooltipText(kontoBankowe.getDataWeryfikacji());
     }
 }
