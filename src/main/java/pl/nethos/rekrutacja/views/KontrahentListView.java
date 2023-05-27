@@ -6,11 +6,13 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
@@ -115,15 +117,22 @@ public class KontrahentListView extends Div {
             AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
             verificationButton.set(new Button("",
                     buttonClickEvent -> {
-                        // TODO: handle exceptions properly
                         try {
                             verificationStatus.set(verifyAccount(kontrahent, kontoBankowe, kontoBankoweRepository));
                             updateVerificationButton(verificationButton, verificationStatus, kontoBankowe);
                         } catch (IOException e) {
+                            // Connection
+                            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
                             throw new RuntimeException(e);
                         } catch (InterruptedException e) {
+                            // Multi-threading
+                            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
+                                    "Spróbuj jeszcze raz.");
                             throw new RuntimeException(e);
                         } catch (ParseException e) {
+                            // Parsing went wrong
+                            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
+                                    "Skontaktuj się z autorem programu.");
                             throw new RuntimeException(e);
                         }
                     }
@@ -193,37 +202,48 @@ public class KontrahentListView extends Div {
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
 
-        String newTimestamp = jsonObject
-                        .getAsJsonObject("result")
-                        .get("requestDateTime")
-                        .getAsString();
+        if (jsonObject.has("result")) {
+            String newTimestamp = jsonObject
+                    .getAsJsonObject("result")
+                    .get("requestDateTime")
+                    .getAsString();
 
-        String inputFormat = "dd-MM-yyyy HH:mm:ss";
-        String outputFormat = "yyyy-MM-dd HH:mm:ss";
-        SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
-        SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
-        Date date = inputFormatter.parse(newTimestamp);
+            String inputFormat = "dd-MM-yyyy HH:mm:ss";
+            String outputFormat = "yyyy-MM-dd HH:mm:ss";
+            SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
+            SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
+            Date date = inputFormatter.parse(newTimestamp);
 
-        kontoBankowe.setDataWeryfikacji(outputFormatter.format(date));
+            kontoBankowe.setDataWeryfikacji(outputFormatter.format(date));
 
-        String accountAssigned = jsonObject
-                .getAsJsonObject("result")
-                .get("accountAssigned")
-                .getAsString();
+            String accountAssigned = jsonObject
+                    .getAsJsonObject("result")
+                    .get("accountAssigned")
+                    .getAsString();
 
-        if (accountAssigned.equals("TAK")) {
-            kontoBankowe.setStanWeryfkacji(ASSIGNED.get());
-            kontoBankoweRepository.merge(kontoBankowe);
-            return ASSIGNED.get();
-        } else if (accountAssigned.equals("NIE")){
-            kontoBankowe.setStanWeryfkacji(NOT_ASSIGNED.get());
-            kontoBankoweRepository.merge(kontoBankowe);
-            return NOT_ASSIGNED.get();
-        } else {
-            // Updating only date.
-            kontoBankoweRepository.merge(kontoBankowe);
+            if (accountAssigned.equals("TAK")) {
+                kontoBankowe.setStanWeryfkacji(ASSIGNED.get());
+                kontoBankoweRepository.merge(kontoBankowe);
+                return ASSIGNED.get();
+            } else if (accountAssigned.equals("NIE")){
+                kontoBankowe.setStanWeryfkacji(NOT_ASSIGNED.get());
+                kontoBankoweRepository.merge(kontoBankowe);
+                return NOT_ASSIGNED.get();
+            } else {
+                // Updating only date.
+                kontoBankoweRepository.merge(kontoBankowe);
+                return STH_WENT_WRONG.get();
+            }
+        } else if (jsonObject.has("code")) {
+            String code = jsonObject.get("code").getAsString();
+            String message = jsonObject.get("message").getAsString();
+            dbErrorDialog(code + ": " + message);
             return STH_WENT_WRONG.get();
         }
+
+        dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na nieoczekiwane zachowanie. " +
+                "Skontaktuj się z autorem programu.");
+        return STH_WENT_WRONG.get();
     }
 
     private void updateVerificationButton(AtomicReference<Button> button,
@@ -235,9 +255,19 @@ public class KontrahentListView extends Div {
             button.get().setText("Zweryfikowany");
         } else if (verificationStatus.get() == NOT_ASSIGNED.get()) {
             button.get().setText("Błędne konto");
+        } else if (verificationStatus.get() == STH_WENT_WRONG.get()) {
+            button.get().setText("Nieokreślony");
+            theme = String.format("badge %s", "information");
         }
 
         button.get().getElement().setAttribute("theme", theme);
         button.get().setTooltipText(kontoBankowe.getDataWeryfikacji());
+    }
+
+    private void dbErrorDialog(String errorText){
+        Dialog dialog = new Dialog();
+        Label infoLabel = new Label(errorText + "\n");
+        dialog.add(infoLabel);
+        dialog.open();
     }
 }
