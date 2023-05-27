@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Class that represent bank account in delivered database.
+ */
 @Entity
 @Table(name = "KONTO_BANKOWE")
 public class BankAccount {
@@ -43,6 +46,9 @@ public class BankAccount {
     @Column(name = "DATA_WERYFIKACJI")
     private String verificationDate;
 
+    /**
+     * Prints BankAccount instance with its every member.
+     */
     @Override
     public String toString() {
         return "BankAccount{" +

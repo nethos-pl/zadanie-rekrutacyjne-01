@@ -31,15 +31,26 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Advanced view showing contractors and related bank accounts.
+ * There is an option to check if the bank account is valid on White List in Poland using government API.
+ */
 @PageTitle("Ekran główny")
 @Route("")
 @CssImport("./styles/MainGridViewStyle.css")
 public class ContractorListView extends Div {
-    private static final AtomicInteger NOT_ASSIGNED = new AtomicInteger(0);
-    private static final AtomicInteger ASSIGNED = new AtomicInteger(1);
+    private static final int NOT_ASSIGNED = 0;
+    private static final int ASSIGNED = 1;
 
     private final BankAccountRepository bankAccountRepository;
 
+    /**
+     * Constructor that sets up main grid with contractors.
+     * Also, it calls the bank account grid to be made as item details for every row.
+     *
+     * @param contractorRepository Instance of our contractor repository as dependency injection.
+     * @param bankAccountRepository Instance of our bank account repository as dependency injection.
+     */
     public ContractorListView(@Autowired ContractorRepository contractorRepository,
                               @Autowired BankAccountRepository bankAccountRepository)  {
 
@@ -79,6 +90,13 @@ public class ContractorListView extends Div {
         add(contractorGrid);
     }
 
+    /**
+     * Builds an item details component.
+     * It will be used to build up item details grid by calling it for every contractor instance.
+     *
+     * @param contractor Instance of the contractor that we want details from.
+     * @return Component instance that can be used to style item details.
+     */
     private Component createItemDetailsGrid(Contractor contractor) {
         Grid<BankAccount> bankAccountGrid = new Grid<>(BankAccount.class, false);
 
@@ -96,7 +114,7 @@ public class ContractorListView extends Div {
         bankAccountGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
         bankAccountGrid
-                .addColumn(new ComponentRenderer<>(this::createFormattedNumer))
+                .addColumn(new ComponentRenderer<>(this::createFormattedNumber))
                 .setHeader("Numer konta").setAutoWidth(true).setFlexGrow(0);
 
         bankAccountGrid.addColumn(BankAccount::getActive).setHeader("Aktywne");
@@ -115,7 +133,15 @@ public class ContractorListView extends Div {
         return bankAccountGrid;
     }
 
+    /**
+     * Builds a verification button to manage verification status.
+     *
+     * @param contractor Instance of the contractor that the bank account relate.
+     * @param bankAccount Instance of the bank account that we assign button with.
+     * @return Component instance that can be used to add to item details.
+     */
     private Component createVerificationButton(Contractor contractor, BankAccount bankAccount) {
+        // Atomic because we have to ensure atomicity and thread-safety when updating the button.
         AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
         verificationButton.set(new Button("",
                 buttonClickEvent -> {
@@ -131,13 +157,26 @@ public class ContractorListView extends Div {
         return verificationButton.get();
     }
 
-    private Component createFormattedNumer(BankAccount bankAccount) {
-        String numer = bankAccount.getNumber();
-        String formattedNumer = formatNumer(numer);
+    /**
+     * Create component with formatted number that will be used in the item details.
+     *
+     * @param bankAccount Instance of the bank account that we assign button with.
+     * @return Component instance that can be used to add to item details.
+     */
+    private Component createFormattedNumber(BankAccount bankAccount) {
+        String number = bankAccount.getNumber();
+        String formattedNumber = formatNumber(number);
 
-        return new Text(formattedNumer);
+        return new Text(formattedNumber);
     }
 
+    /**
+     * Verify if the account is assigned to the contractor on government White List.
+     * It also generates dialogs for user if something won't go as planned.
+     *
+     * @param bankAccount Instance of the bank account that we want to check.
+     * @param contractor Instance of the contractor that the bank account should relate.
+     */
     private void verifyAccount(Contractor contractor, BankAccount bankAccount) {
         JsonObject jsonResponse = jsonResponseFromWlGovApi(contractor, bankAccount);
         if (jsonResponse.has("result")) {
@@ -158,10 +197,10 @@ public class ContractorListView extends Div {
                     .getAsString();
 
             if (accountAssigned.equals("TAK")) {
-                bankAccount.setVerificationStatus(ASSIGNED.get());
+                bankAccount.setVerificationStatus(ASSIGNED);
                 bankAccountRepository.merge(bankAccount);
             } else if (accountAssigned.equals("NIE")){
-                bankAccount.setVerificationStatus(NOT_ASSIGNED.get());
+                bankAccount.setVerificationStatus(NOT_ASSIGNED);
                 bankAccountRepository.merge(bankAccount);
             } else {
                 // Updating only date.
@@ -177,6 +216,14 @@ public class ContractorListView extends Div {
         }
     }
 
+    /**
+     * Makes http call to government White List API.
+     * Also, it shows dialog for user if something went wrong.
+     *
+     * @param contractor Instance of the contractor that the bank account relate.
+     * @param bankAccount Instance of the bank account that we are checking.
+     * @return JsonObject with the server response.
+     */
     private JsonObject jsonResponseFromWlGovApi(Contractor contractor, BankAccount bankAccount){
         HttpClient client = HttpClient.newHttpClient();
         // Request for test white list GOV API.
@@ -216,6 +263,12 @@ public class ContractorListView extends Div {
         return jsonResponse;
     }
 
+    /**
+     * Format date from White List API response to our database format.
+     *
+     * @param newTimestamp Timestamp that will be formatted.
+     * @return String with formatted date.
+     */
     private String formatDate(String newTimestamp) {
         String inputFormat = "dd-MM-yyyy HH:mm:ss";
         String outputFormat = "yyyy-MM-dd HH:mm:ss";
@@ -240,6 +293,12 @@ public class ContractorListView extends Div {
             return "";
     }
 
+    /**
+     * Creates simple error dialog with specific information to user.
+     * It has no other elements than text.
+     *
+     * @param errorText Information to user.
+     */
     private void dbErrorDialog(String errorText){
         Dialog dialog = new Dialog();
         Label infoLabel = new Label(errorText + "\n");
@@ -247,30 +306,44 @@ public class ContractorListView extends Div {
         dialog.open();
     }
 
-    private String formatNumer(String numer) {
-        StringBuilder formattedNumer = new StringBuilder();
+    /**
+     * Format the account number
+     * to: XX XXXX XXXX XXXX XXXX XXXX XXXX
+     * from: XXXXXXXXXXXXXXXXXXXXXXXXXX.
+     *
+     * @param number Number to format.
+     * @return String with formatted account number.
+     */
+    private String formatNumber(String number) {
+        StringBuilder formattedNumber = new StringBuilder();
 
         // We want new string to be in format: xx xxxx xxxx xxxx xxxx xxxx xxxx.
-        for (int i = 0; i < numer.length(); i++) {
+        for (int i = 0; i < number.length(); i++) {
             // First two digits or all next groups of four.
             if (i == 2 || i % 4 == 2)
-                formattedNumer.append(" ");
+                formattedNumber.append(" ");
 
-            formattedNumer.append(numer.charAt(i));
+            formattedNumber.append(number.charAt(i));
         }
 
-        return formattedNumer.toString();
+        return formattedNumber.toString();
     }
 
+    /**
+     * Update the appearance of verification button in item details.
+     *
+     * @param verificationButton Verification button.
+     * @param bankAccount Instance of the bank account from which we get verification status.
+     */
     private void updateVerificationButton(AtomicReference<Button> verificationButton, BankAccount bankAccount) {
         String theme = "badge error";
         if (bankAccount.getVerificationStatus() == null) {
             verificationButton.get().setText("Nieokreślony");
             theme = String.format("badge %s", "information");
-        } else if (bankAccount.getVerificationStatus() == ASSIGNED.get()){
+        } else if (bankAccount.getVerificationStatus() == ASSIGNED){
             theme = String.format("badge %s", "success");
             verificationButton.get().setText("Zweryfikowany");
-        } else if (bankAccount.getVerificationStatus() == NOT_ASSIGNED.get()) {
+        } else if (bankAccount.getVerificationStatus() == NOT_ASSIGNED) {
             verificationButton.get().setText("Błędne konto");
         }
 
