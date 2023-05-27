@@ -5,9 +5,13 @@ import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -24,15 +28,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 @PageTitle("Ekran główny")
 @Route("")
+@CssImport("./styles/MainGridViewStyle.css")
 public class KontrahentListView extends Div {
     private static final AtomicInteger NOT_ASSIGNED = new AtomicInteger(0);
     private static final AtomicInteger ASSIGNED = new AtomicInteger(1);
@@ -46,6 +49,7 @@ public class KontrahentListView extends Div {
         this.kontoBankoweRepository = kontoBankoweRepository;
 
         Grid<Kontrahent> kontrahentGrid = new Grid<>(Kontrahent.class, false);
+        kontrahentGrid.setClassName("kontrahent-konto-bankowe-grid");
 
         // STYLE THE GRID
         // Grid striped.
@@ -58,12 +62,20 @@ public class KontrahentListView extends Div {
         kontrahentGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
         // Build the structure.
-        kontrahentGrid.addColumn(Kontrahent::getNazwa).setHeader("Kontrahent");
-        kontrahentGrid.addColumn(Kontrahent::getNip).setHeader("NIP");
+        Label nazwaHeaderLabel = new Label("Kontrahent");
+        nazwaHeaderLabel.addClassName("kontrahent-grid-headers");
+        kontrahentGrid.addColumn(Kontrahent::getNazwa).setHeader(nazwaHeaderLabel);
+
+
+        Label nipHeaderLabel = new Label("NIP");
+        nipHeaderLabel.addClassName("kontrahent-grid-headers");
+        kontrahentGrid.addColumn(Kontrahent::getNip).setHeader(nipHeaderLabel);
+
 
         // Add details to each row by renderer.
         kontrahentGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createItemDetailsGrid));
 
+        kontrahentGrid.setAllRowsVisible(true);
 
         // FILL THE GRID WITH DATA
         kontrahentGrid.setItems(kontrahentRepository.all());
@@ -74,6 +86,8 @@ public class KontrahentListView extends Div {
 
     private Component createItemDetailsGrid(Kontrahent kontrahent) {
         Grid<KontoBankowe> kontoBankoweGrid = new Grid<>(KontoBankowe.class, false);
+        kontoBankoweGrid.setClassName("konto-bankowe-grid");
+
 
         // STYLE THE GRID
         // Grid striped.
@@ -90,7 +104,7 @@ public class KontrahentListView extends Div {
             String formattedNumer = formatNumer(numer);
 
             return (Component) new Text(formattedNumer);
-        })).setHeader("Numer konta").setAutoWidth(true);
+        })).setHeader("Numer konta").setAutoWidth(true).setFlexGrow(0);
 
         kontoBankoweGrid.addColumn(KontoBankowe::getAktywne).setHeader("Aktywne");
         kontoBankoweGrid.addColumn(KontoBankowe::getDomyslne).setHeader("Domyślne");
@@ -134,6 +148,7 @@ public class KontrahentListView extends Div {
             return verificationButton.get();
         })).setHeader("Stan Weryfikacji");
 
+        kontoBankoweGrid.setAllRowsVisible(true);
 
         // FILL THE GRID WITH DATA
         kontoBankoweGrid.setItems(kontoBankoweRepository.specificKontrahent(kontrahent.getId()));
