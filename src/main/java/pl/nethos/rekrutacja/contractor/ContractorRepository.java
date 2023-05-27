@@ -1,4 +1,4 @@
-package pl.nethos.rekrutacja.kontrahent;
+package pl.nethos.rekrutacja.contractor;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -9,12 +9,12 @@ import java.util.List;
 
 @Service
 @Transactional
-public class KontrahentRepository {
+public class ContractorRepository {
 
     @PersistenceContext
     private EntityManager em;
 
-    public List<Kontrahent> all() {
-        return em.createQuery("SELECT k FROM Kontrahent k", Kontrahent.class).getResultList();
+    public List<Contractor> all() {
+        return em.createQuery("SELECT k FROM Contractor k", Contractor.class).getResultList();
     }
 }
