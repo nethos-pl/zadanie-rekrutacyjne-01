@@ -15,10 +15,10 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
-import pl.nethos.rekrutacja.konto_bankowe.KontoBankowe;
-import pl.nethos.rekrutacja.konto_bankowe.KontoBankoweRepository;
-import pl.nethos.rekrutacja.kontrahent.Kontrahent;
-import pl.nethos.rekrutacja.kontrahent.KontrahentRepository;
+import pl.nethos.rekrutacja.bank_account.BankAccount;
+import pl.nethos.rekrutacja.bank_account.BankAccountRepository;
+import pl.nethos.rekrutacja.contractor.Contractor;
+import pl.nethos.rekrutacja.contractor.ContractorRepository;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,112 +34,112 @@ import java.util.concurrent.atomic.AtomicReference;
 @PageTitle("Ekran główny")
 @Route("")
 @CssImport("./styles/MainGridViewStyle.css")
-public class KontrahentListView extends Div {
+public class ContractorListView extends Div {
     private static final AtomicInteger NOT_ASSIGNED = new AtomicInteger(0);
     private static final AtomicInteger ASSIGNED = new AtomicInteger(1);
 
-    private final KontoBankoweRepository kontoBankoweRepository;
+    private final BankAccountRepository bankAccountRepository;
 
-    public KontrahentListView(@Autowired KontrahentRepository kontrahentRepository,
-                              @Autowired KontoBankoweRepository kontoBankoweRepository)  {
+    public ContractorListView(@Autowired ContractorRepository contractorRepository,
+                              @Autowired BankAccountRepository bankAccountRepository)  {
 
-        this.kontoBankoweRepository = kontoBankoweRepository;
+        this.bankAccountRepository = bankAccountRepository;
 
-        Grid<Kontrahent> kontrahentGrid = new Grid<>(Kontrahent.class, false);
-        kontrahentGrid.setClassName("kontrahent-konto-bankowe-grid");
+        Grid<Contractor> contractorGrid = new Grid<>(Contractor.class, false);
+        contractorGrid.setClassName("contractor-bank-account-grid");
 
         // STYLE THE GRID
         // Grid striped.
-        kontrahentGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        contractorGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         // Dynamic height.
-        kontrahentGrid.setAllRowsVisible(true);
+        contractorGrid.setAllRowsVisible(true);
 
         // Highlight the row.
-        kontrahentGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        contractorGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
         // Build the structure.
         Label nazwaHeaderLabel = new Label("Kontrahent");
-        nazwaHeaderLabel.addClassName("kontrahent-grid-headers");
-        kontrahentGrid.addColumn(Kontrahent::getNazwa).setHeader(nazwaHeaderLabel);
+        nazwaHeaderLabel.addClassName("contractor-grid-headers");
+        contractorGrid.addColumn(Contractor::getName).setHeader(nazwaHeaderLabel);
 
         Label nipHeaderLabel = new Label("NIP");
-        nipHeaderLabel.addClassName("kontrahent-grid-headers");
-        kontrahentGrid.addColumn(Kontrahent::getNip).setHeader(nipHeaderLabel);
+        nipHeaderLabel.addClassName("contractor-grid-headers");
+        contractorGrid.addColumn(Contractor::getNip).setHeader(nipHeaderLabel);
 
         // Add details to each row by renderer.
-        kontrahentGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createItemDetailsGrid));
+        contractorGrid.setItemDetailsRenderer(new ComponentRenderer<>(this::createItemDetailsGrid));
 
-        kontrahentGrid.setAllRowsVisible(true);
+        contractorGrid.setAllRowsVisible(true);
 
         // FILL THE GRID WITH DATA
-        kontrahentGrid.setItems(kontrahentRepository.all());
+        contractorGrid.setItems(contractorRepository.all());
 
         // Adding my grid to UI.
-        add(kontrahentGrid);
+        add(contractorGrid);
     }
 
-    private Component createItemDetailsGrid(Kontrahent kontrahent) {
-        Grid<KontoBankowe> kontoBankoweGrid = new Grid<>(KontoBankowe.class, false);
+    private Component createItemDetailsGrid(Contractor contractor) {
+        Grid<BankAccount> bankAccountGrid = new Grid<>(BankAccount.class, false);
 
         // For CSS purpose.
-        kontoBankoweGrid.setClassName("konto-bankowe-grid");
+        bankAccountGrid.setClassName("bank-account-grid");
 
         // STYLE THE GRID
         // Grid striped.
-        kontoBankoweGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        bankAccountGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         // Dynamic height.
-        kontoBankoweGrid.setAllRowsVisible(true);
+        bankAccountGrid.setAllRowsVisible(true);
 
         // Highlight the row.
-        kontoBankoweGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        bankAccountGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
-        kontoBankoweGrid
+        bankAccountGrid
                 .addColumn(new ComponentRenderer<>(this::createFormattedNumer))
                 .setHeader("Numer konta").setAutoWidth(true).setFlexGrow(0);
 
-        kontoBankoweGrid.addColumn(KontoBankowe::getAktywne).setHeader("Aktywne");
-        kontoBankoweGrid.addColumn(KontoBankowe::getDomyslne).setHeader("Domyślne");
-        kontoBankoweGrid.addColumn(KontoBankowe::getWirtualne).setHeader("Wirtualne");
+        bankAccountGrid.addColumn(BankAccount::getActive).setHeader("Aktywne");
+        bankAccountGrid.addColumn(BankAccount::getDefaultAccount).setHeader("Domyślne");
+        bankAccountGrid.addColumn(BankAccount::getVirtual).setHeader("Wirtualne");
 
-        kontoBankoweGrid
-                .addColumn(new ComponentRenderer<>(kontoBankowe -> createVerificationButton(kontrahent, kontoBankowe)))
+        bankAccountGrid
+                .addColumn(new ComponentRenderer<>(bankAccount -> createVerificationButton(contractor, bankAccount)))
                 .setHeader("Stan Weryfikacji");
 
-        kontoBankoweGrid.setAllRowsVisible(true);
+        bankAccountGrid.setAllRowsVisible(true);
 
         // FILL THE GRID WITH DATA
-        kontoBankoweGrid.setItems(kontoBankoweRepository.specificKontrahent(kontrahent.getId()));
+        bankAccountGrid.setItems(bankAccountRepository.specificKontrahent(contractor.getId()));
 
-        return kontoBankoweGrid;
+        return bankAccountGrid;
     }
 
-    private Component createVerificationButton(Kontrahent kontrahent, KontoBankowe kontoBankowe) {
+    private Component createVerificationButton(Contractor contractor, BankAccount bankAccount) {
         AtomicReference<Button> verificationButton = new AtomicReference<>(new Button());
         verificationButton.set(new Button("",
                 buttonClickEvent -> {
                     // Verification on demand.
-                    verifyAccount(kontrahent, kontoBankowe);
-                    updateVerificationButton(verificationButton, kontoBankowe);
+                    verifyAccount(contractor, bankAccount);
+                    updateVerificationButton(verificationButton, bankAccount);
                 }
         ));
 
         // Check verification at start.
-        updateVerificationButton(verificationButton, kontoBankowe);
+        updateVerificationButton(verificationButton, bankAccount);
 
         return verificationButton.get();
     }
 
-    private Component createFormattedNumer(KontoBankowe kontoBankowe) {
-        String numer = kontoBankowe.getNumer();
+    private Component createFormattedNumer(BankAccount bankAccount) {
+        String numer = bankAccount.getNumber();
         String formattedNumer = formatNumer(numer);
 
-        return (Component) new Text(formattedNumer);
+        return new Text(formattedNumer);
     }
 
-    private void verifyAccount(Kontrahent kontrahent, KontoBankowe kontoBankowe) {
-        JsonObject jsonResponse = jsonResponseFromWlGovApi(kontrahent, kontoBankowe);
+    private void verifyAccount(Contractor contractor, BankAccount bankAccount) {
+        JsonObject jsonResponse = jsonResponseFromWlGovApi(contractor, bankAccount);
         if (jsonResponse.has("result")) {
             String newTimestamp = jsonResponse
                     .getAsJsonObject("result")
@@ -148,9 +148,9 @@ public class KontrahentListView extends Div {
 
             String newDateString = formatDate(newTimestamp);
             if (!newDateString.equals(""))
-                kontoBankowe.setDataWeryfikacji(newDateString);
+                bankAccount.setVerificationDate(newDateString);
             else
-                kontoBankowe.setDataWeryfikacji("Niepoprawny format daty.");
+                bankAccount.setVerificationDate("Niepoprawny format daty.");
 
             String accountAssigned = jsonResponse
                     .getAsJsonObject("result")
@@ -158,14 +158,14 @@ public class KontrahentListView extends Div {
                     .getAsString();
 
             if (accountAssigned.equals("TAK")) {
-                kontoBankowe.setStanWeryfkacji(ASSIGNED.get());
-                kontoBankoweRepository.merge(kontoBankowe);
+                bankAccount.setVerificationStatus(ASSIGNED.get());
+                bankAccountRepository.merge(bankAccount);
             } else if (accountAssigned.equals("NIE")){
-                kontoBankowe.setStanWeryfkacji(NOT_ASSIGNED.get());
-                kontoBankoweRepository.merge(kontoBankowe);
+                bankAccount.setVerificationStatus(NOT_ASSIGNED.get());
+                bankAccountRepository.merge(bankAccount);
             } else {
                 // Updating only date.
-                kontoBankoweRepository.merge(kontoBankowe);
+                bankAccountRepository.merge(bankAccount);
             }
         } else if (jsonResponse.has("code")) {
             String code = jsonResponse.get("code").getAsString();
@@ -177,21 +177,21 @@ public class KontrahentListView extends Div {
         }
     }
 
-    private JsonObject jsonResponseFromWlGovApi(Kontrahent kontrahent, KontoBankowe kontoBankowe){
+    private JsonObject jsonResponseFromWlGovApi(Contractor contractor, BankAccount bankAccount){
         HttpClient client = HttpClient.newHttpClient();
         // Request for test white list GOV API.
 //        HttpRequest getRequest = HttpRequest.newBuilder()
 //                .uri(URI.create("https://wl-test.mf.gov.pl/api/check/nip/" +
-//                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
+//                        contractor.getNip() + "/bank-account/" + bankAccount.getNumber()))
 //                .build();
 
         // Request for production white list GOV API.
         HttpRequest getRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://wl-api.mf.gov.pl/api/check/nip/" +
-                        kontrahent.getNip() + "/bank-account/" + kontoBankowe.getNumer()))
+                        contractor.getNip() + "/bank-account/" + bankAccount.getNumber()))
                 .build();
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
@@ -205,10 +205,10 @@ public class KontrahentListView extends Div {
             throw new RuntimeException(e);
         }
 
-        System.out.println(response.body());
+//        System.out.println(response.body());
 
         JsonObject jsonResponse = null;
-        if (!response.equals(null)) {
+        if (response != null) {
             Gson gson = new Gson();
             jsonResponse = gson.fromJson(response.body(), JsonObject.class);
         }
@@ -222,7 +222,7 @@ public class KontrahentListView extends Div {
         SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
         SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
 
-        Date date = null;
+        Date date;
         try {
             date = inputFormatter.parse(newTimestamp);
         } catch (ParseException e) {
@@ -262,19 +262,19 @@ public class KontrahentListView extends Div {
         return formattedNumer.toString();
     }
 
-    private void updateVerificationButton(AtomicReference<Button> verificationButton, KontoBankowe kontoBankowe) {
+    private void updateVerificationButton(AtomicReference<Button> verificationButton, BankAccount bankAccount) {
         String theme = "badge error";
-        if (kontoBankowe.getStanWeryfkacji() == null) {
+        if (bankAccount.getVerificationStatus() == null) {
             verificationButton.get().setText("Nieokreślony");
             theme = String.format("badge %s", "information");
-        } else if (kontoBankowe.getStanWeryfkacji() == ASSIGNED.get()){
+        } else if (bankAccount.getVerificationStatus() == ASSIGNED.get()){
             theme = String.format("badge %s", "success");
             verificationButton.get().setText("Zweryfikowany");
-        } else if (kontoBankowe.getStanWeryfkacji() == NOT_ASSIGNED.get()) {
+        } else if (bankAccount.getVerificationStatus() == NOT_ASSIGNED.get()) {
             verificationButton.get().setText("Błędne konto");
         }
 
         verificationButton.get().getElement().setAttribute("theme", theme);
-        verificationButton.get().setTooltipText(kontoBankowe.getDataWeryfikacji());
+        verificationButton.get().setTooltipText(bankAccount.getVerificationDate());
     }
 }

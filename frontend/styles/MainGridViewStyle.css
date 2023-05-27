@@ -1,4 +1,4 @@
-.kontrahent-grid-headers {
+.contractor-grid-headers {
     font-size: 1.25em;
     font-weight: bold;
     border-radius: 5px;
@@ -9,11 +9,11 @@
     padding-bottom: 2px;
 }
 
-.kontrahent-konto-bankowe-grid {
+.contractor-bank-account-grid {
     font-weight: 600;
 }
 
-.konto-bankowe-grid {
+.bank-account-grid {
     font-weight: normal;
     width: 98%;
     margin-left: 1%;
