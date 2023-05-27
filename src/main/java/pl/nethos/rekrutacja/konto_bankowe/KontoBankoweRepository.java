@@ -22,4 +22,8 @@ public class KontoBankoweRepository {
     public List<KontoBankowe> specificKontrahent(long idKontrahent) {
         return em.createQuery("SELECT b FROM KontoBankowe b WHERE idKontrahent="+idKontrahent, KontoBankowe.class).getResultList();
     }
+
+    public void merge(KontoBankowe kontoBankowe) {
+        em.merge(kontoBankowe);
+    }
 }
