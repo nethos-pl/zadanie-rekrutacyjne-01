@@ -28,7 +28,6 @@ import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -146,7 +145,8 @@ public class ContractorListView extends Div {
         verificationButton.set(new Button("",
                 buttonClickEvent -> {
                     // Verification on demand.
-                    verifyAccount(contractor, bankAccount);
+                    verifyBankAccount(contractor, bankAccount);
+                    bankAccountRepository.merge(bankAccount);
                     updateVerificationButton(verificationButton, bankAccount);
                 }
         ));
@@ -177,15 +177,38 @@ public class ContractorListView extends Div {
      * @param bankAccount Instance of the bank account that we want to check.
      * @param contractor Instance of the contractor that the bank account should relate.
      */
-    private void verifyAccount(Contractor contractor, BankAccount bankAccount) {
-        JsonObject jsonResponse = jsonResponseFromWlGovApi(contractor, bankAccount);
+    private void verifyBankAccount(Contractor contractor, BankAccount bankAccount) {
+        HttpResponse<String> wlApiResponse = null;
+        try {
+            wlApiResponse = getResponseFromWlApi(contractor, bankAccount);
+        } catch (IOException e) {
+            // Connection
+            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            // Multi-threading
+            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
+                    "Spróbuj jeszcze raz.");
+            throw new RuntimeException(e);
+        }
+
+        JsonObject jsonResponse = jsonResponseFromWlGovApi(wlApiResponse);
         if (jsonResponse.has("result")) {
             String newTimestamp = jsonResponse
                     .getAsJsonObject("result")
                     .get("requestDateTime")
                     .getAsString();
 
-            String newDateString = formatDate(newTimestamp);
+            String newDateString;
+            try {
+                newDateString = formatDate(newTimestamp);
+            } catch (ParseException e) {
+                // Parsing went wrong
+                dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
+                        "Skontaktuj się z autorem programu.");
+                throw new RuntimeException(e);
+            }
+
             if (!newDateString.equals(""))
                 bankAccount.setVerificationDate(newDateString);
             else
@@ -198,13 +221,8 @@ public class ContractorListView extends Div {
 
             if (accountAssigned.equals("TAK")) {
                 bankAccount.setVerificationStatus(ASSIGNED);
-                bankAccountRepository.merge(bankAccount);
             } else if (accountAssigned.equals("NIE")){
                 bankAccount.setVerificationStatus(NOT_ASSIGNED);
-                bankAccountRepository.merge(bankAccount);
-            } else {
-                // Updating only date.
-                bankAccountRepository.merge(bankAccount);
             }
         } else if (jsonResponse.has("code")) {
             String code = jsonResponse.get("code").getAsString();
@@ -217,14 +235,30 @@ public class ContractorListView extends Div {
     }
 
     /**
+     * Method create Json object from HTTP response.
+     *
+     * @param getResponse Response from GET call.
+     * @return JsonObject with the server response.
+     */
+    private JsonObject jsonResponseFromWlGovApi(HttpResponse<String> getResponse){
+        JsonObject jsonResponse = null;
+        if (getResponse != null) {
+            Gson gson = new Gson();
+            jsonResponse = gson.fromJson(getResponse.body(), JsonObject.class);
+        }
+
+        return jsonResponse;
+    }
+
+    /**
      * Makes http call to government White List API.
-     * Also, it shows dialog for user if something went wrong.
      *
      * @param contractor Instance of the contractor that the bank account relate.
      * @param bankAccount Instance of the bank account that we are checking.
-     * @return JsonObject with the server response.
+     * @return Response from the server as HttpResponse<String>.
      */
-    private JsonObject jsonResponseFromWlGovApi(Contractor contractor, BankAccount bankAccount){
+    private HttpResponse<String> getResponseFromWlApi(Contractor contractor, BankAccount bankAccount)
+            throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         // Request for test white list GOV API.
 //        HttpRequest getRequest = HttpRequest.newBuilder()
@@ -238,29 +272,7 @@ public class ContractorListView extends Div {
                         contractor.getNip() + "/bank-account/" + bankAccount.getNumber()))
                 .build();
 
-        HttpResponse<String> response;
-        try {
-            response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            // Connection
-            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            // Multi-threading
-            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
-                    "Spróbuj jeszcze raz.");
-            throw new RuntimeException(e);
-        }
-
-//        System.out.println(response.body());
-
-        JsonObject jsonResponse = null;
-        if (response != null) {
-            Gson gson = new Gson();
-            jsonResponse = gson.fromJson(response.body(), JsonObject.class);
-        }
-
-        return jsonResponse;
+        return client.send(getRequest, HttpResponse.BodyHandlers.ofString());
     }
 
     /**
@@ -269,21 +281,13 @@ public class ContractorListView extends Div {
      * @param newTimestamp Timestamp that will be formatted.
      * @return String with formatted date.
      */
-    private String formatDate(String newTimestamp) {
+    private String formatDate(String newTimestamp) throws ParseException {
         String inputFormat = "dd-MM-yyyy HH:mm:ss";
         String outputFormat = "yyyy-MM-dd HH:mm:ss";
         SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
         SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
 
-        Date date;
-        try {
-            date = inputFormatter.parse(newTimestamp);
-        } catch (ParseException e) {
-            // Parsing went wrong
-            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
-                    "Skontaktuj się z autorem programu.");
-            throw new RuntimeException(e);
-        }
+        Date date = inputFormatter.parse(newTimestamp);
 
         String newDateString = outputFormatter.format(date);
 
@@ -299,7 +303,7 @@ public class ContractorListView extends Div {
      *
      * @param errorText Information to user.
      */
-    private void dbErrorDialog(String errorText){
+    private void dbErrorDialog(String errorText) {
         Dialog dialog = new Dialog();
         Label infoLabel = new Label(errorText + "\n");
         dialog.add(infoLabel);
