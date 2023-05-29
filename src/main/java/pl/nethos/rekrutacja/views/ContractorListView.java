@@ -40,6 +40,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ContractorListView extends Div {
     private static final int NOT_ASSIGNED = 0;
     private static final int ASSIGNED = 1;
+    private static final Integer ACCOUNT_NULL_STATUS = null;
+    private static final String DATE_ERROR = "";
+    private static final String RESPONSE_ERROR = "";
 
     private final BankAccountRepository bankAccountRepository;
 
@@ -145,9 +148,7 @@ public class ContractorListView extends Div {
         verificationButton.set(new Button("",
                 buttonClickEvent -> {
                     // Verification on demand.
-                    verifyBankAccount(contractor, bankAccount);
-                    bankAccountRepository.merge(bankAccount);
-                    updateVerificationButton(verificationButton, bankAccount);
+                    manageVerificationOfBankAccount(contractor, bankAccount, verificationButton);
                 }
         ));
 
@@ -171,26 +172,20 @@ public class ContractorListView extends Div {
     }
 
     /**
-     * Verify if the account is assigned to the contractor on government White List.
-     * It also generates dialogs for user if something won't go as planned.
+     * Manage the verification process of the bank account. It runs call to White List API,
+     * check the response and update entity, database and the button related to the bank account.
      *
-     * @param bankAccount Instance of the bank account that we want to check.
      * @param contractor Instance of the contractor that the bank account should relate.
+     * @param bankAccount Instance of the bank account that we want to check.
+     * @param verificationButton Verification button related to the bank account.
      */
-    private void verifyBankAccount(Contractor contractor, BankAccount bankAccount) {
-        HttpResponse<String> wlApiResponse = null;
-        try {
-            wlApiResponse = getResponseFromWlApi(contractor, bankAccount);
-        } catch (IOException e) {
-            // Connection
-            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            // Multi-threading
-            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
-                    "Spróbuj jeszcze raz.");
-            throw new RuntimeException(e);
-        }
+    private void manageVerificationOfBankAccount(Contractor contractor,
+                                                 BankAccount bankAccount,
+                                                 AtomicReference<Button> verificationButton) {
+
+        HttpResponse<String> wlApiResponse = getResponseFromWlApi(contractor, bankAccount);
+        if (wlApiResponse.body().equals(RESPONSE_ERROR))
+            return;
 
         JsonObject jsonResponse = jsonResponseFromWlGovApi(wlApiResponse);
         if (jsonResponse.has("result")) {
@@ -199,20 +194,11 @@ public class ContractorListView extends Div {
                     .get("requestDateTime")
                     .getAsString();
 
-            String newDateString;
-            try {
-                newDateString = formatDate(newTimestamp);
-            } catch (ParseException e) {
-                // Parsing went wrong
-                dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
-                        "Skontaktuj się z autorem programu.");
-                throw new RuntimeException(e);
-            }
+            String newDateString = formatDate(newTimestamp);
+            if (newDateString.equals(DATE_ERROR))
+                return;
 
-            if (!newDateString.equals(""))
-                bankAccount.setVerificationDate(newDateString);
-            else
-                bankAccount.setVerificationDate("Niepoprawny format daty.");
+            bankAccount.setVerificationDate(newDateString);
 
             String accountAssigned = jsonResponse
                     .getAsJsonObject("result")
@@ -224,13 +210,13 @@ public class ContractorListView extends Div {
             } else if (accountAssigned.equals("NIE")){
                 bankAccount.setVerificationStatus(NOT_ASSIGNED);
             }
+            // Update database.
+            bankAccountRepository.merge(bankAccount);
+            updateVerificationButton(verificationButton, bankAccount);
         } else if (jsonResponse.has("code")) {
             String code = jsonResponse.get("code").getAsString();
             String message = jsonResponse.get("message").getAsString();
             dbErrorDialog(code + ": " + message);
-        } else {
-            dbErrorDialog("Sprawdzenie konta nie powiodło się odpowiedź z serwera jest pusta. " +
-                    "Skontaktuj się z autorem programu.");
         }
     }
 
@@ -241,24 +227,19 @@ public class ContractorListView extends Div {
      * @return JsonObject with the server response.
      */
     private JsonObject jsonResponseFromWlGovApi(HttpResponse<String> getResponse){
-        JsonObject jsonResponse = null;
-        if (getResponse != null) {
-            Gson gson = new Gson();
-            jsonResponse = gson.fromJson(getResponse.body(), JsonObject.class);
-        }
-
-        return jsonResponse;
+        Gson gson = new Gson();
+        return gson.fromJson(getResponse.body(), JsonObject.class);
     }
 
     /**
      * Makes http call to government White List API.
+     * It also generates dialogs for user if something won't go as planned.
      *
      * @param contractor Instance of the contractor that the bank account relate.
      * @param bankAccount Instance of the bank account that we are checking.
      * @return Response from the server as HttpResponse<String>.
      */
-    private HttpResponse<String> getResponseFromWlApi(Contractor contractor, BankAccount bankAccount)
-            throws IOException, InterruptedException {
+    private HttpResponse<String> getResponseFromWlApi(Contractor contractor, BankAccount bankAccount) {
         HttpClient client = HttpClient.newHttpClient();
         // Request for test white list GOV API.
 //        HttpRequest getRequest = HttpRequest.newBuilder()
@@ -272,29 +253,47 @@ public class ContractorListView extends Div {
                         contractor.getNip() + "/bank-account/" + bankAccount.getNumber()))
                 .build();
 
-        return client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response;
+        try {
+            response = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            // Connection
+            dbErrorDialog("Sprawdzenie konta nie powiodło się. Sprawdź swoje połączenie z internetem.");
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            // Multi-threading
+            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na zajętość procesora. " +
+                    "Spróbuj jeszcze raz.");
+            throw new RuntimeException(e);
+        }
+
+        return response;
     }
 
     /**
      * Format date from White List API response to our database format.
+     * It also generates dialogs for user if something won't go as planned.
      *
      * @param newTimestamp Timestamp that will be formatted.
      * @return String with formatted date.
      */
-    private String formatDate(String newTimestamp) throws ParseException {
+    private String formatDate(String newTimestamp) {
         String inputFormat = "dd-MM-yyyy HH:mm:ss";
         String outputFormat = "yyyy-MM-dd HH:mm:ss";
         SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
         SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
 
-        Date date = inputFormatter.parse(newTimestamp);
+        Date date;
+        try {
+            date = inputFormatter.parse(newTimestamp);
+        } catch (ParseException e) {
+            // Parsing went wrong
+            dbErrorDialog("Sprawdzenie konta nie powiodło się ze względu na złe formatowanie treści. " +
+                    "Skontaktuj się z autorem programu.");
+            throw new RuntimeException(e);
+        }
 
-        String newDateString = outputFormatter.format(date);
-
-        if (!newDateString.equals(""))
-            return newDateString;
-        else
-            return "";
+        return outputFormatter.format(date);
     }
 
     /**
@@ -341,7 +340,7 @@ public class ContractorListView extends Div {
      */
     private void updateVerificationButton(AtomicReference<Button> verificationButton, BankAccount bankAccount) {
         String theme = "badge error";
-        if (bankAccount.getVerificationStatus() == null) {
+        if (bankAccount.getVerificationStatus() == ACCOUNT_NULL_STATUS) {
             verificationButton.get().setText("Nieokreślony");
             theme = String.format("badge %s", "information");
         } else if (bankAccount.getVerificationStatus() == ASSIGNED){
