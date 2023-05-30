@@ -45,10 +45,10 @@ public class ContractorListView extends Div {
     private static final String RESPONSE_ERROR = "";
 
     private final BankAccountRepository bankAccountRepository;
+    private final ContractorRepository contractorRepository;
 
     /**
      * Constructor that sets up main grid with contractors.
-     * Also, it calls the bank account grid to be made as item details for every row.
      *
      * @param contractorRepository Instance of our contractor repository as dependency injection.
      * @param bankAccountRepository Instance of our bank account repository as dependency injection.
@@ -56,8 +56,17 @@ public class ContractorListView extends Div {
     public ContractorListView(@Autowired ContractorRepository contractorRepository,
                               @Autowired BankAccountRepository bankAccountRepository)  {
 
+        this.contractorRepository = contractorRepository;
         this.bankAccountRepository = bankAccountRepository;
 
+        createContractorsGrid();
+    }
+
+    /**
+     * Method that create main view with contractors.
+     * Also, it calls the bank account grid to be made as item details for every row.
+     */
+    private void createContractorsGrid() {
         Grid<Contractor> contractorGrid = new Grid<>(Contractor.class, false);
         contractorGrid.setClassName("contractor-bank-account-grid");
 
